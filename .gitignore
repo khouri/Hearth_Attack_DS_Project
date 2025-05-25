@@ -172,3 +172,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# all csv data must be ignored
+*.csv
+
+# arquivo env com dados sensiveis
+.env
+*.env
+.env*
