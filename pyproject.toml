@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "HEARTH_ATTACK_DS_PROJECT"
+version = "0.1.0"
+description = "An exploratory data analises +a statistical model to predict hearth attacks"
+authors = ["Adilson Khouri <adilson.khouri.usp@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.11.4"
+scikit-learn = "^1.6.1"
+pandas = "^2.2.3"
+numpy = "^2.2.6"
+seaborn = "^0.13.2"
+matplotlib = "^3.10.3"
+dotenv = "^0.9.9"
+kaggle = "^1.7.4.5"
+joblib = "^1.5.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

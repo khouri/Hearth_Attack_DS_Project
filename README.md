@@ -6,7 +6,41 @@ https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction
 
 
 
+# how to build the image:
 
+docker buildx build -t Hearth_attack_model --file Dockerfile_Hearth_attack_model .
+
+
+
+
+# how to use poetry
+poetry commands:
+
+poetry env list
+poetry env use C:\Users\PC\.conda\envs\gen_ai_31104\python.exe
+poetry env remove --all
+poetry add langchain-groq@0.3.0
+poetry shell
+poetry install 
+
+# nao instala o projeto, apenas as dependencias
+poetry install --no-root
+
+
+poetry add scikit-learn
+
+poetry add pandas 
+poetry add numpy
+
+
+
+poetry add seaborn
+poetry add matplotlib
+poetry add dotenv
+poetry add zipfile
+poetry add kaggle
+poetry add seaborn
+poetry add joblib
 
 
 import numpy as np
@@ -896,3 +930,6 @@ with mlflow.start_run():
     
     print(f"Melhores parâmetros: {grid_search.best_params_}")
     print(f"Acurácia do melhor modelo: {accuracy:.4f}")
+
+
+

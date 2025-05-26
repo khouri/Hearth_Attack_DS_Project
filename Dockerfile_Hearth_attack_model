@@ -1,0 +1,43 @@
+# ============ ESTÁGIO DE CONSTRUÇÃO ============
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Instala dependências de build
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Cria e ativa ambiente virtual
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Instala dependências Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia o código fonte
+COPY . .
+
+# Treina o modelo (executa durante o build)
+RUN python train_model.py
+
+# ============ ESTÁGIO FINAL ============ 
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copia apenas o necessário do estágio builder
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /app/model /app/model
+COPY --from=builder /app/src /app/src
+
+# Configura ambiente
+ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+
+# Porta para servir o modelo (se aplicável)
+#EXPOSE 8000
+
+# Comando padrão (pode ser sobrescrito no docker run)
+CMD ["python", "src/serve_model.py"]

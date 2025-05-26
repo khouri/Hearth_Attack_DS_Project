@@ -8,11 +8,10 @@ pass
 
 
 def main(instance_tobe_scored):
-    print('main')
-    model = __load_model('../model_serializable/Random_forest.joblib')
-    score  = model.predict_proba(instance_tobe_scored)[:, 1]
 
-    # predict
+    model = __load_model("../model_serializable/Random_forest.joblib")
+    score = model.predict_proba(instance_tobe_scored)[:, 1]
+
     return(score)
 pass
 
