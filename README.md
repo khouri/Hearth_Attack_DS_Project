@@ -707,3 +707,192 @@ test_df = pd.read_csv('./titanic_data/test.csv')
 print("\nDados carregados:")
 print(f"Treino: {train_df.shape}")
 print(f"Teste: {test_df.shape}")
+
+
+
+
+# import sys
+# import os
+# # Adiciona o diretório acima ao PATH do Python
+# sys.path.append(os.path.abspath(os.path.join('..')))
+
+
+# from sampling.SplitData import SplitData
+# splitter = SplitData(partitions = [.8,.1,.1])
+
+
+# # heart_df.columns
+# heart_df_label = heart_df.pop('label')
+
+
+# train, train_label, dev, dev_label, test, test_label = \
+#                                         splitter.get_three_sets(heart_df, 
+#                                                                 heart_df_label)
+
+# print(train.shape)
+# print(dev.shape)
+# print(test.shape)
+# print(train.dtypes)
+
+# from sklearn.compose import ColumnTransformer
+# from sklearn.preprocessing import OneHotEncoder
+# import pandas as pd
+# import numpy as np
+
+
+# ohe_obj = OneHotEncoder(sparse_output = False, 
+#                         handle_unknown = 'ignore')
+
+# # Lista das colunas categóricas
+# train_cat = train.select_dtypes(include=['object'])
+# cat_cols = train_cat.columns
+
+# # Criar o transformador
+# preprocessor = ColumnTransformer(
+#     transformers = [('ohe', ohe_obj, cat_cols) ],
+#     remainder = 'passthrough'  # Mantém as colunas não transformadas
+# )
+
+
+# df_encoded = pd.DataFrame(preprocessor.fit_transform(train), 
+#                           columns = preprocessor.get_feature_names_out())
+
+# # join com dados originais
+# df_encoded = pd.concat([train, df_encoded], axis = 1)
+
+
+
+# print(df_encoded.columns)
+# print(df_encoded.shape)
+
+# from sklearn.compose import ColumnTransformer
+# from sklearn.preprocessing import OneHotEncoder
+# import pandas as pd
+# import numpy as np
+
+
+# ohe_obj = OneHotEncoder(sparse_output = False, 
+#                         handle_unknown = 'ignore')
+
+# # Lista das colunas categóricas
+# train_cat = train.select_dtypes(include=['object'])
+# cat_cols = train_cat.columns
+
+# # Criar o transformador
+# preprocessor = ColumnTransformer(
+#     transformers = [('ohe', ohe_obj, cat_cols) ],
+#     remainder = 'passthrough'  # Mantém as colunas não transformadas
+# )
+
+
+# df_encoded = pd.DataFrame(preprocessor.fit_transform(train), 
+#                           columns = preprocessor.get_feature_names_out())
+
+# # join com dados originais
+# df_encoded = pd.concat([train, df_encoded], axis = 1)
+
+
+# print(df_encoded.columns)
+# print(df_encoded.shape)
+
+# from sklearn.preprocessing import StandardScaler
+
+# std_scaler_obj = StandardScaler()
+
+# # Lista das colunas categóricas
+# train_cat = train.select_dtypes(include=[np.number])
+# num_cols = train_cat.columns
+
+# # Criar o transformador
+# preprocessor = ColumnTransformer(
+#     transformers = [('stdscaler', std_scaler_obj, num_cols) ],
+#     remainder = 'passthrough'  # Mantém as colunas não transformadas
+# )
+
+
+# df_encoded = pd.DataFrame(preprocessor.fit_transform(train), 
+#                           columns = preprocessor.get_feature_names_out())
+
+# print(df_encoded.shape)
+
+# # join com dados originais
+# df_encoded = pd.concat([train, df_encoded], axis = 1)
+
+# print(df_encoded.columns)
+# print(df_encoded.shape)
+# print(train.shape)
+,
+
+
+
+mlflow
+
+
+
+import mlflow
+import mlflow.sklearn
+from sklearn.datasets import load_iris
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+import pandas as pd
+
+# 1. Configuração do MLflow
+mlflow.set_tracking_uri("http://localhost:5000")  # ou o URI do seu servidor MLflow
+mlflow.set_experiment("Iris Classification - GridSearch")
+
+# 2. Carregar e preparar os dados
+iris = load_iris()
+X = iris.data
+y = iris.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. Definir o modelo e os parâmetros para GridSearch
+model = RandomForestClassifier(random_state=42)
+
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 5, 10],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# 4. Configurar e executar o GridSearchCV com MLflow
+with mlflow.start_run():
+    # Iniciar GridSearch
+    grid_search = GridSearchCV(
+        estimator=model,
+        param_grid=param_grid,
+        cv=5,
+        scoring='accuracy',
+        n_jobs=-1,
+        verbose=1
+    )
+    
+    grid_search.fit(X_train, y_train)
+    
+    # Log dos parâmetros e métricas
+    mlflow.log_params(grid_search.best_params_)
+    
+    # Avaliar o melhor modelo
+    best_model = grid_search.best_estimator_
+    y_pred = best_model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    
+    mlflow.log_metric("accuracy", accuracy)
+    
+    # Log do classification report como artefato
+    report = classification_report(y_test, y_pred, target_names=iris.target_names, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    report_df.to_csv("classification_report.csv", index=True)
+    mlflow.log_artifact("classification_report.csv")
+    
+    # Log do modelo
+    mlflow.sklearn.log_model(best_model, "best_model")
+    
+    # Log de informações adicionais
+    mlflow.set_tag("model_type", "RandomForest")
+    mlflow.set_tag("dataset", "Iris")
+    
+    print(f"Melhores parâmetros: {grid_search.best_params_}")
+    print(f"Acurácia do melhor modelo: {accuracy:.4f}")
