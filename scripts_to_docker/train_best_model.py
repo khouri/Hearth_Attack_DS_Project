@@ -1,23 +1,16 @@
-import pandas as pd
-
-import sys
+from dotenv import load_dotenv, find_dotenv
 import os
-from pathlib import Path
-from dotenv import load_dotenv
+import sys 
 
-# Carrega variáveis de ambiente
-env_path = Path(__file__).parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
+_ = load_dotenv(find_dotenv())
 
-# Configura o Python path
-project_root = Path(__file__).parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+project_path = os.environ["PROJECT_ABS_PATH"]
+sys.path.append(os.path.abspath(os.path.join(project_path)))
 
 
-from machine_learning.decorator.BaseParamGrid import BaseParamGrid
-from machine_learning.decorator.CommonParamsDecorator import CommonParamsDecorator
-from machine_learning.decorator.RandomForestDecorator import RandomForestDecorator
+from src.machine_learning.decorator.BaseParamGrid import BaseParamGrid
+from src.machine_learning.decorator.CommonParamsDecorator import CommonParamsDecorator
+from src.machine_learning.decorator.RandomForestDecorator import RandomForestDecorator
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import fbeta_score, make_scorer
@@ -27,7 +20,7 @@ from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector, make_column_transformer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-
+import pandas as pd
 from joblib import dump
 
 
@@ -104,7 +97,7 @@ def train_model():
     grid.fit(train_predictors, train_label)
     
     best_model = grid.best_estimator_
-    path = os.environ["PROJECT_ABS_PATH"] + "\\model_serializable\\Random_forest.joblib"
+    path = os.environ["PROJECT_ABS_PATH"] + "\\serialized_models\\Random_forest.joblib"
     dump(best_model, path)
 
 pass
@@ -119,19 +112,4 @@ if __name__ == "__main__":
     import gc
     gc.collect()
     main()
-
-    
-    # project_path = os.environ["PROJECT_ABS_PATH"]
-    # print("\n")
-    # print("\n")
-    # print("-------------")
-    # print(project_path)
-    # pat = "\\data\\train_predictors_FE.csv"
-    # tmp = project_path + pat  
-    # print(type(tmp))
-    # print(tmp)
-    # print("-------------")
-    # print("\n")
-    # print("\n")
-
 pass

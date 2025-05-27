@@ -1,3 +1,13 @@
+from dotenv import load_dotenv, find_dotenv
+import os
+import sys 
+
+_ = load_dotenv(find_dotenv())
+
+project_path = os.environ["PROJECT_ABS_PATH"]
+sys.path.append(os.path.abspath(os.path.join(project_path)))
+
+
 from joblib import load
 import pandas as pd
 
@@ -9,7 +19,8 @@ pass
 
 def main(instance_tobe_scored):
 
-    model = __load_model("../model_serializable/Random_forest.joblib")
+    path = os.environ["PROJECT_ABS_PATH"] + "\\serialized_models\\Random_forest.joblib"
+    model = __load_model(path)
     score = model.predict_proba(instance_tobe_scored)[:, 1]
 
     return(score)
@@ -18,8 +29,13 @@ pass
 
 #TODO, trocar por um serviço
 if __name__ == "__main__":
+    import gc
+    gc.collect()
+    
+    project_path = os.environ["PROJECT_ABS_PATH"]
+    test_path = project_path + "\\data\\test_predictors_FE.csv"
 
-    test_predictors = pd.read_csv('../data/test_predictors_FE.csv', 
+    test_predictors = pd.read_csv(test_path, 
                                   sep = ';', 
                                   index_col=0)
                                   
