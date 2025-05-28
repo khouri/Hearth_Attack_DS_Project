@@ -1,43 +1,61 @@
-# ============ ESTÁGIO DE CONSTRUÇÃO ============
-FROM python:3.11-slim as builder
+# Estágio de construção
+FROM python:3.11.4-slim as builder
+# FROM scratch
 
 WORKDIR /app
 
-# Instala dependências de build
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# 1. Instalar apenas o Poetry (sem dependências extras)
+RUN pip install --user poetry==1.7.1
 
-# Cria e ativa ambiente virtual
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+# 2. Configurar Poetry para não criar virtualenv (usaremos o do container)
+ENV POETRY_VIRTUALENVS_CREATE=false
+ENV POETRY_NO_INTERACTION=1
+ENV POETRY_NO_ANS=1
+ENV PATH="/root/.local/bin:$PATH"
 
-# Instala dependências Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+ENV KAGGLE_USERNAME="adilsonkhouri"
+ENV KAGGLE_KEY=""
+ENV PROJECT_ABS_PATH="/app"
 
-# Copia o código fonte
+
+# 3. Copiar apenas os arquivos necessários para instalação (melhor cache)
 COPY . .
 
-# Treina o modelo (executa durante o build)
-RUN python train_model.py
+# 4. Instalar dependências em diretório separado (para copiar depois)
+RUN poetry install --only main --no-root && \
+    poetry cache clear --all pypi -n && \
+    python scripts_to_docker/train_best_model.py && \
+    rm -rf /root/.cache/pip
 
-# ============ ESTÁGIO FINAL ============ 
-FROM python:3.11-slim
+# --------------------------------------------------
+# Estágio final (imagem de produção)
+FROM python:3.11.4-slim
 
 WORKDIR /app
 
-# Copia apenas o necessário do estágio builder
-COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /app/model /app/model
-COPY --from=builder /app/src /app/src
+# 2. Configurar Poetry para não criar virtualenv (usaremos o do container)
+ENV POETRY_VIRTUALENVS_CREATE=false
+ENV POETRY_NO_INTERACTION=1
+ENV POETRY_NO_ANS=1
+ENV PATH="/root/.local/bin:$PATH"
 
-# Configura ambiente
-ENV PATH="/opt/venv/bin:$PATH"
-ENV PYTHONUNBUFFERED=1
+ENV KAGGLE_USERNAME="adilsonkhouri"
+ENV KAGGLE_KEY=""
+ENV PROJECT_ABS_PATH="/app"
 
-# Porta para servir o modelo (se aplicável)
-#EXPOSE 8000
+# # 6. Copiar apenas o necessário do estágio builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app/serialized_models/Random_forest.joblib /app/serialized_models/Random_forest.joblib
 
-# Comando padrão (pode ser sobrescrito no docker run)
-CMD ["python", "src/serve_model.py"]
+# # 7. Garantir que o PATH inclua o .local/bin
+ENV PATH="/root/.local/bin:/app/.venv/bin:$PATH"
+
+# # 8. Usar usuário não-root para segurança
+RUN useradd -m appuser && \
+    chown -R appuser:appuser /app && \
+    find /usr/local/lib/python3.11 -name '*.dist-info' -exec rm -rf {} + && \
+    find /usr/local/lib/python3.11 -name 'tests' -exec rm -rf {} + && \
+    rm -rf /var/lib/apt/lists/*
+
+USER appuser

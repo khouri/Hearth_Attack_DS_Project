@@ -22,6 +22,7 @@ from sklearn.compose import make_column_selector, make_column_transformer
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 import pandas as pd
 from joblib import dump
+from pathlib import Path
 
 
 
@@ -75,10 +76,13 @@ pass
 
 def __load_train_data():
 
-    project_path = os.environ["PROJECT_ABS_PATH"]
+    project_path = Path(os.environ["PROJECT_ABS_PATH"])
 
-    train_path = project_path + "\\data\\train_predictors_FE.csv"
-    label_path = project_path + "\\data\\train_label_FE.csv"
+    # train_path = project_path + "\\data\\train_predictors_FE.csv"
+    # label_path = project_path + "\\data\\train_label_FE.csv"
+
+    train_path = project_path / "data" / "train_predictors_FE.csv"
+    label_path = project_path / "data" / "train_label_FE.csv"
 
     train_predictors = pd.read_csv(train_path, sep = ';', index_col=0)
     train_label = pd.read_csv(label_path, sep = ';', index_col=0)
@@ -97,7 +101,8 @@ def train_model():
     grid.fit(train_predictors, train_label)
     
     best_model = grid.best_estimator_
-    path = os.environ["PROJECT_ABS_PATH"] + "\\serialized_models\\Random_forest.joblib"
+    # label_path = project_path / "data" / "train_label_FE.csv"
+    path = Path(os.environ["PROJECT_ABS_PATH"]) / "serialized_models" / "Random_forest.joblib"
     dump(best_model, path)
 
 pass

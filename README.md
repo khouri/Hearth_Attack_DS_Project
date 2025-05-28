@@ -8,7 +8,7 @@ https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction
 
 # how to build the image:
 
-docker buildx build -t Hearth_attack_model --file Dockerfile_Hearth_attack_model .
+docker buildx build -t hearth_attack_model --file Dockerfile_Hearth_attack_model .
 
 
 
@@ -31,6 +31,23 @@ poetry add scikit-learn
 
 poetry add pandas 
 poetry add numpy
+
+
+# quando usamos o poetry sen env, ele instala aqui as dependendencias:
+poetry run python -m site --user-site
+
+
+# buildando com docker
+docker buildx build -t test_image_build --file Dockerfile_Hearth_attack_model .
+
+docker run -d --name test_image_build
+
+
+docker container run --rm gitlabteste
+
+docker run -it gitlabteste sh
+
+
 
 
 

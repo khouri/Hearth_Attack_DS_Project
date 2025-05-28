@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(project_path)))
 
 from joblib import load
 import pandas as pd
+from pathlib import Path
 
 
 def __load_model(path):
@@ -19,7 +20,7 @@ pass
 
 def main(instance_tobe_scored):
 
-    path = os.environ["PROJECT_ABS_PATH"] + "\\serialized_models\\Random_forest.joblib"
+    path = Path(os.environ["PROJECT_ABS_PATH"]) / "serialized_models" / "Random_forest.joblib"
     model = __load_model(path)
     score = model.predict_proba(instance_tobe_scored)[:, 1]
 
@@ -32,8 +33,8 @@ if __name__ == "__main__":
     import gc
     gc.collect()
     
-    project_path = os.environ["PROJECT_ABS_PATH"]
-    test_path = project_path + "\\data\\test_predictors_FE.csv"
+    project_path = Path(os.environ["PROJECT_ABS_PATH"])
+    test_path = project_path + "data" / "test_predictors_FE.csv"
 
     test_predictors = pd.read_csv(test_path, 
                                   sep = ';', 
